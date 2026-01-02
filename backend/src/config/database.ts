@@ -26,10 +26,6 @@ export const disconnectDatabase = async (): Promise<void> => {
 };
 
 // Handle connection events
-mongoose.connection.on('connected', () => {
-  console.log('Mongoose connected to MongoDB');
-});
-
 mongoose.connection.on('error', (err) => {
   console.error('Mongoose connection error:', err);
 });

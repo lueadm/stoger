@@ -43,6 +43,8 @@ async function testDatabaseConnection() {
     if (found) {
       console.log('✅ Read operation successful');
       console.log(`   Document ID: ${found._id}`);
+    } else {
+      throw new Error('Document not found - read operation failed');
     }
 
     // Step 4: Test delete operation
