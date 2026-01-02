@@ -2,10 +2,18 @@ import mongoose, { Schema, Document } from 'mongoose';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
+export interface IProfile {
+  firstName?: string;
+  lastName?: string;
+  bio?: string;
+  avatarUrl?: string;
+}
+
 export interface IUser extends Document {
   email: string;
   username: string;
   password: string;
+  profile?: IProfile;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -37,6 +45,12 @@ const UserSchema = new Schema({
     type: String, 
     required: true,
     minlength: 6
+  },
+  profile: {
+    firstName: { type: String, trim: true },
+    lastName: { type: String, trim: true },
+    bio: { type: String, trim: true },
+    avatarUrl: { type: String, trim: true }
   },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
@@ -82,5 +96,9 @@ UserSchema.methods.generateAuthToken = function(): string {
   
   return token;
 };
+
+// Indexes for performance
+UserSchema.index({ email: 1 });
+UserSchema.index({ username: 1 });
 
 export default mongoose.model<IUser>('User', UserSchema);
