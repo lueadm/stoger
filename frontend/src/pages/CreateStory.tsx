@@ -22,12 +22,14 @@ function CreateStory() {
   };
 
   const performStoryGeneration = async () => {
-    if (!summary.trim()) {
+    const trimmedSummary = summary.trim();
+    
+    if (!trimmedSummary) {
       setError('Please enter a story summary.');
       return;
     }
 
-    if (summary.length < 20) {
+    if (trimmedSummary.length < 20) {
       setError('Summary must be at least 20 characters long.');
       return;
     }
@@ -37,7 +39,8 @@ function CreateStory() {
     setSuccess(false);
 
     try {
-      const story = await storyService.generateStory(summary);
+      const story = await storyService.generateStory(trimmedSummary);
+      setLoading(false);
       setSuccess(true);
       
       // Delay redirect slightly to show success state
