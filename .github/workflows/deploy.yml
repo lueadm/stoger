@@ -1,0 +1,42 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - 'staging'
+          - 'production'
+
+jobs:
+  build-docker:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          tags: stoger:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      
+      - name: Display deployment info
+        run: |
+          echo "Environment: ${{ github.event.inputs.environment }}"
+          echo "Docker image built successfully: stoger:latest"
+          echo "To deploy, configure your deployment target and enable push in the workflow"
