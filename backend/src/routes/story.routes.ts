@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { authenticateToken } from '../middleware/auth.middleware';
+import { apiLimiter, storyGenerationLimiter } from '../middleware/rate-limit.middleware';
 import {
   generateStory,
   getAllStories,
@@ -15,8 +16,11 @@ import {
 
 const router = Router();
 
-// POST /api/stories/generate - Generate story from summary (requires auth)
-router.post('/generate', authenticateToken, generateStory);
+// Apply general API rate limiting to all routes
+router.use(apiLimiter);
+
+// POST /api/stories/generate - Generate story from summary (requires auth, stricter rate limit)
+router.post('/generate', storyGenerationLimiter, authenticateToken, generateStory);
 
 // GET /api/stories - Get all stories (optional auth)
 router.get('/', getAllStories);
@@ -36,8 +40,8 @@ router.get('/:id/chapters', getChapters);
 // PUT /api/stories/:id/chapters/:chapterId - Update chapter (requires auth)
 router.put('/:id/chapters/:chapterId', authenticateToken, updateChapter);
 
-// POST /api/stories/:id/chapters/:chapterId/regenerate - Regenerate chapter with AI (requires auth)
-router.post('/:id/chapters/:chapterId/regenerate', authenticateToken, regenerateChapter);
+// POST /api/stories/:id/chapters/:chapterId/regenerate - Regenerate chapter with AI (requires auth, stricter rate limit)
+router.post('/:id/chapters/:chapterId/regenerate', storyGenerationLimiter, authenticateToken, regenerateChapter);
 
 // DELETE /api/stories/:id/chapters/:chapterId - Delete chapter (requires auth)
 router.delete('/:id/chapters/:chapterId', authenticateToken, deleteChapter);
