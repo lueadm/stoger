@@ -64,8 +64,9 @@ router.put('/:id/chapters/:chapterId', async (req: Request, res: Response) => {
 // POST /api/stories/:id/chapters/:chapterId/regenerate - Regenerate chapter with AI
 router.post('/:id/chapters/:chapterId/regenerate', async (req: Request, res: Response) => {
   try {
-    const { id, chapterId } = req.params;
-    const { prompt } = req.body;
+    const { chapterId } = req.params;
+    // const { id } = req.params; // TODO: Use for fetching story during implementation
+    // const { prompt } = req.body; // TODO: Use for AI regeneration during implementation
     
     // TODO: Call AI service to regenerate chapter
     res.json({ 

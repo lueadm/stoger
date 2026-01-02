@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Story, GenerateStoryRequest } from '../types';
+import { Story } from '../types';
 import config from '../config';
 
 const api = axios.create({

@@ -10,21 +10,21 @@ function ReadStory() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const loadStory = async () => {
+      if (!id) return;
+      
+      try {
+        const data = await storyService.getStory(id);
+        setStory(data);
+      } catch (err) {
+        console.error('Failed to load story:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadStory();
   }, [id]);
-
-  const loadStory = async () => {
-    if (!id) return;
-    
-    try {
-      const data = await storyService.getStory(id);
-      setStory(data);
-    } catch (err) {
-      console.error('Failed to load story:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (loading) return <div className="loading">Loading...</div>;
   if (!story) return <div className="error">Story not found</div>;

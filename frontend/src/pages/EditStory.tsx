@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { storyService } from '../services/api';
 import { Story, Chapter } from '../types';
@@ -12,11 +12,7 @@ function EditStory() {
   const [editingChapter, setEditingChapter] = useState<string | null>(null);
   const [chapterContent, setChapterContent] = useState('');
 
-  useEffect(() => {
-    loadStory();
-  }, [id]);
-
-  const loadStory = async () => {
+  const loadStory = useCallback(async () => {
     if (!id) return;
     
     try {
@@ -27,7 +23,11 @@ function EditStory() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    loadStory();
+  }, [loadStory]);
 
   const handleEditChapter = (chapter: Chapter) => {
     setEditingChapter(chapter.id);

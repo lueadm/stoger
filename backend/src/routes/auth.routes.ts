@@ -5,7 +5,8 @@ const router = Router();
 // POST /api/auth/register - Register new user
 router.post('/register', async (req: Request, res: Response) => {
   try {
-    const { email, password, username } = req.body;
+    const { email, username } = req.body;
+    // const { password } = req.body; // TODO: Use for hashing during implementation
     
     // TODO: Implement user registration
     // Hash password, save to database, generate token
@@ -22,7 +23,7 @@ router.post('/register', async (req: Request, res: Response) => {
 // POST /api/auth/login - Login user
 router.post('/login', async (req: Request, res: Response) => {
   try {
-    const { email, password } = req.body;
+    // const { email, password } = req.body; // TODO: Use for authentication during implementation
     
     // TODO: Implement user login
     // Verify credentials, generate token
