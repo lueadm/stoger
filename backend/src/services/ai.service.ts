@@ -151,11 +151,11 @@ export class AIService {
         messages: [
           {
             role: 'system',
-            content: 'You are a creative writer specializing in story structure. Generate chapter titles that form a coherent story arc. Return the response as a JSON array of objects with "title" property only, nothing else. Example: [{"title": "Chapter 1: The Beginning"}, {"title": "Chapter 2: The Journey"}]'
+            content: 'You are a creative writer specializing in story structure. Generate chapter titles that form a coherent story arc. Return the response as a JSON object with a "chapters" property containing an array of objects with "title" property. Example: {"chapters": [{"title": "Chapter 1: The Beginning"}, {"title": "Chapter 2: The Journey"}]}'
           },
           {
             role: 'user',
-            content: `Create ${numberOfChapters} chapter titles for a story titled "${title}" with this summary:\n\n${summary}\n\nReturn as JSON array.`
+            content: `Create ${numberOfChapters} chapter titles for a story titled "${title}" with this summary:\n\n${summary}\n\nReturn as JSON object with chapters array.`
           }
         ],
         max_tokens: 500,
@@ -170,13 +170,12 @@ export class AIService {
 
       // Parse the JSON response
       const parsed = JSON.parse(content);
-      const chapters = parsed.chapters || parsed;
       
-      if (!Array.isArray(chapters)) {
+      if (!parsed.chapters || !Array.isArray(parsed.chapters)) {
         throw new Error('Invalid response format from AI');
       }
 
-      return chapters.map((chapter: { title: string }, index: number) => ({
+      return parsed.chapters.map((chapter: { title: string }, index: number) => ({
         id: `chapter-${index + 1}`,
         title: chapter.title,
         order: index + 1
