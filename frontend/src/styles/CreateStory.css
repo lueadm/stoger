@@ -49,19 +49,13 @@
   box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
 }
 
-.error-message {
+.create-story .error-message {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 16px;
-  background-color: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 6px;
-  margin-bottom: 20px;
 }
 
-.error-message p {
-  color: #dc2626;
+.create-story .error-message p {
   margin: 0;
 }
 
