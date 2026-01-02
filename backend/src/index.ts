@@ -32,6 +32,10 @@ const startServer = async () => {
       throw new Error('JWT_SECRET environment variable is required');
     }
     
+    if (!process.env.AI_API_KEY) {
+      console.warn('⚠️  Warning: AI_API_KEY not set. Story generation features will not work.');
+    }
+    
     // Connect to database
     await connectDatabase();
     
