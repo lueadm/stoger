@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { storyService } from '../services/api';
 import { getErrorMessage } from '../utils/errorHandler';
@@ -32,8 +32,6 @@ function CreateStory() {
   };
 
   const performStoryGeneration = async () => {
-    const trimmedSummary = summary.trim();
-    
     if (!trimmedSummary) {
       setError('Please enter a story summary.');
       return;
@@ -74,7 +72,8 @@ function CreateStory() {
 
   const remainingChars = MAX_SUMMARY_LENGTH - summary.length;
   const isNearLimit = remainingChars < 100;
-  const isSummaryValid = summary.trim().length > 0;
+  const trimmedSummary = useMemo(() => summary.trim(), [summary]);
+  const isSummaryValid = trimmedSummary.length > 0;
 
   return (
     <div className="create-story">
