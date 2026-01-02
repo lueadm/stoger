@@ -1,93 +1,52 @@
-import { Router, Request, Response } from 'express';
+import { Router } from 'express';
+import { authenticateToken } from '../middleware/auth.middleware';
+import { apiLimiter, storyGenerationLimiter } from '../middleware/rate-limit.middleware';
+import {
+  generateStory,
+  getAllStories,
+  getStoryById,
+  updateStory,
+  deleteStory,
+  getChapters,
+  updateChapter,
+  regenerateChapter,
+  deleteChapter,
+  publishStory
+} from '../controllers/story.controller';
 
 const router = Router();
 
-// POST /api/stories/generate - Generate story from summary
-router.post('/generate', async (req: Request, res: Response) => {
-  try {
-    const { summary } = req.body;
-    
-    // TODO: Implement AI story generation
-    // This will call an AI service to generate title, chapters, and content
-    
-    res.json({
-      message: 'Story generation endpoint',
-      summary,
-      // Placeholder response
-      story: {
-        title: 'Generated Story Title',
-        chapters: [
-          { id: 1, title: 'Chapter 1', content: 'Content for chapter 1' },
-          { id: 2, title: 'Chapter 2', content: 'Content for chapter 2' }
-        ]
-      }
-    });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to generate story' });
-  }
-});
+// Apply general API rate limiting to all routes
+router.use(apiLimiter);
 
-// GET /api/stories - Get all stories
-router.get('/', async (req: Request, res: Response) => {
-  try {
-    // TODO: Fetch from database
-    res.json({ stories: [] });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch stories' });
-  }
-});
+// POST /api/stories/generate - Generate story from summary (requires auth, stricter rate limit)
+router.post('/generate', storyGenerationLimiter, authenticateToken, generateStory);
 
-// GET /api/stories/:id - Get specific story
-router.get('/:id', async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    // TODO: Fetch from database
-    res.json({ story: { id, title: 'Story Title' } });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch story' });
-  }
-});
+// GET /api/stories - Get all stories (optional auth)
+router.get('/', getAllStories);
 
-// PUT /api/stories/:id/chapters/:chapterId - Update chapter
-router.put('/:id/chapters/:chapterId', async (req: Request, res: Response) => {
-  try {
-    const { id, chapterId } = req.params;
-    const { content } = req.body;
-    
-    // TODO: Update in database
-    res.json({ message: 'Chapter updated', id, chapterId, content });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to update chapter' });
-  }
-});
+// GET /api/stories/:id - Get specific story (optional auth)
+router.get('/:id', getStoryById);
 
-// POST /api/stories/:id/chapters/:chapterId/regenerate - Regenerate chapter with AI
-router.post('/:id/chapters/:chapterId/regenerate', async (req: Request, res: Response) => {
-  try {
-    const { chapterId } = req.params;
-    // const { id } = req.params; // TODO: Use for fetching story during implementation
-    // const { prompt } = req.body; // TODO: Use for AI regeneration during implementation
-    
-    // TODO: Call AI service to regenerate chapter
-    res.json({ 
-      message: 'Chapter regenerated',
-      chapter: { id: chapterId, content: 'Regenerated content' }
-    });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to regenerate chapter' });
-  }
-});
+// PUT /api/stories/:id - Update story metadata (requires auth)
+router.put('/:id', authenticateToken, updateStory);
 
-// POST /api/stories/:id/publish - Publish story
-router.post('/:id/publish', async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    
-    // TODO: Update story status in database
-    res.json({ message: 'Story published', id, published: true });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to publish story' });
-  }
-});
+// DELETE /api/stories/:id - Delete story (requires auth)
+router.delete('/:id', authenticateToken, deleteStory);
+
+// GET /api/stories/:id/chapters - Get all chapters (optional auth)
+router.get('/:id/chapters', getChapters);
+
+// PUT /api/stories/:id/chapters/:chapterId - Update chapter (requires auth)
+router.put('/:id/chapters/:chapterId', authenticateToken, updateChapter);
+
+// POST /api/stories/:id/chapters/:chapterId/regenerate - Regenerate chapter with AI (requires auth, stricter rate limit)
+router.post('/:id/chapters/:chapterId/regenerate', storyGenerationLimiter, authenticateToken, regenerateChapter);
+
+// DELETE /api/stories/:id/chapters/:chapterId - Delete chapter (requires auth)
+router.delete('/:id/chapters/:chapterId', authenticateToken, deleteChapter);
+
+// POST /api/stories/:id/publish - Publish story (requires auth)
+router.post('/:id/publish', authenticateToken, publishStory);
 
 export default router;
