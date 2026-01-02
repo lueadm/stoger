@@ -187,6 +187,19 @@ export const updateStory = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
+    // Prevent editing published stories
+    // Authors can only change the published field to unpublish
+    // All other edits require the story to be unpublished first
+    if (story.published) {
+      const isUnpublishing = validatedData.published === false;
+      const isEditingContent = validatedData.title !== undefined || validatedData.summary !== undefined;
+      
+      if (isEditingContent && !isUnpublishing) {
+        res.status(403).json({ error: 'Cannot edit published stories. Unpublish the story first.' });
+        return;
+      }
+    }
+
     // Update fields
     if (validatedData.title !== undefined) {
       story.title = validatedData.title;
@@ -279,6 +292,12 @@ export const updateChapter = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
+    // Prevent editing published stories
+    if (story.published) {
+      res.status(403).json({ error: 'Cannot edit chapters of published stories. Unpublish the story first.' });
+      return;
+    }
+
     // Find and update the chapter
     const chapterIndex = story.chapters.findIndex(ch => ch.id === chapterId);
 
@@ -343,6 +362,12 @@ export const regenerateChapter = async (req: Request, res: Response): Promise<vo
     // Check if user is the author
     if (story.authorId !== authReq.user.userId) {
       res.status(403).json({ error: 'Access denied' });
+      return;
+    }
+
+    // Prevent editing published stories
+    if (story.published) {
+      res.status(403).json({ error: 'Cannot regenerate chapters of published stories. Unpublish the story first.' });
       return;
     }
 
@@ -462,6 +487,12 @@ export const deleteChapter = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
+    // Prevent editing published stories
+    if (story.published) {
+      res.status(403).json({ error: 'Cannot delete chapters of published stories. Unpublish the story first.' });
+      return;
+    }
+
     // Find and remove the chapter
     const chapterIndex = story.chapters.findIndex(ch => ch.id === chapterId);
 
@@ -518,5 +549,45 @@ export const publishStory = async (req: Request, res: Response): Promise<void> =
   } catch (error) {
     console.error('Publish story error:', error);
     res.status(500).json({ error: 'Failed to publish story' });
+  }
+};
+
+/**
+ * Unpublish a story
+ */
+export const unpublishStory = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const authReq = req as AuthRequest;
+
+    if (!authReq.user) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const story = await Story.findById(id);
+
+    if (!story) {
+      res.status(404).json({ error: 'Story not found' });
+      return;
+    }
+
+    // Check if user is the author
+    if (story.authorId !== authReq.user.userId) {
+      res.status(403).json({ error: 'Access denied' });
+      return;
+    }
+
+    story.published = false;
+    story.updatedAt = new Date();
+    await story.save();
+
+    res.json({
+      message: 'Story unpublished successfully',
+      story
+    });
+  } catch (error) {
+    console.error('Unpublish story error:', error);
+    res.status(500).json({ error: 'Failed to unpublish story' });
   }
 };
