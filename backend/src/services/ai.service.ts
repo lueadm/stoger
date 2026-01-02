@@ -149,30 +149,46 @@ export class AIService {
     }
 
     try {
-      const response = await this.client.chat.completions.create({
+      const completionParams: OpenAI.Chat.ChatCompletionCreateParams = {
         model: this.model,
         messages: [
           {
             role: 'system',
-            content: 'You are a creative writer specializing in story structure. Generate chapter titles that form a coherent story arc. Return the response as a JSON object with a "chapters" property containing an array of objects with "title" property. Example: {"chapters": [{"title": "Chapter 1: The Beginning"}, {"title": "Chapter 2: The Journey"}]}'
+            content: 'You are a creative writer specializing in story structure. Generate chapter titles that form a coherent story arc. Return ONLY a valid JSON object with a "chapters" property containing an array of objects with "title" property. Example: {"chapters": [{"title": "Chapter 1: The Beginning"}, {"title": "Chapter 2: The Journey"}]}'
           },
           {
             role: 'user',
-            content: `Create ${numberOfChapters} chapter titles for a story titled "${title}" with this summary:\n\n${summary}\n\nReturn as JSON object with chapters array.`
+            content: `Create ${numberOfChapters} chapter titles for a story titled "${title}" with this summary:\n\n${summary}\n\nReturn ONLY the JSON object with chapters array, no additional text.`
           }
         ],
         max_tokens: 500,
-        temperature: 0.7,
-        response_format: { type: 'json_object' }
-      });
+        temperature: 0.7
+      };
+
+      // Only add response_format for models that support it
+      if (this.model.indexOf('gpt-4o') !== -1 || 
+          this.model.indexOf('gpt-4-turbo') !== -1 || 
+          this.model.indexOf('gpt-3.5-turbo-1106') !== -1 ||
+          this.model.indexOf('gpt-4-1106') !== -1) {
+        completionParams.response_format = { type: 'json_object' };
+      }
+
+      const response = await this.client.chat.completions.create(completionParams);
 
       const content = response.choices[0]?.message?.content?.trim();
       if (!content) {
         throw new Error('Failed to generate chapter outlines');
       }
 
+      // Try to extract JSON if the response contains extra text
+      let jsonContent = content;
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        jsonContent = jsonMatch[0];
+      }
+
       // Parse the JSON response
-      const parsed = JSON.parse(content);
+      const parsed = JSON.parse(jsonContent);
       
       if (!parsed.chapters || !Array.isArray(parsed.chapters)) {
         throw new Error('Invalid response format from AI');

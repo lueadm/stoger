@@ -1,29 +1,80 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { storyService } from '../services/api';
+import { getErrorMessage } from '../utils/errorHandler';
 import '../styles/CreateStory.css';
+
+const MAX_SUMMARY_LENGTH = 1000;
 
 function CreateStory() {
   const [summary, setSummary] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
+  const redirectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (redirectTimeoutRef.current) {
+        clearTimeout(redirectTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleSummaryChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    if (value.length <= MAX_SUMMARY_LENGTH) {
+      setSummary(value);
+      setError(''); // Clear error when user starts typing
+    }
+  };
+
+  const performStoryGeneration = async () => {
+    const trimmedSummary = summary.trim();
+    
+    if (!trimmedSummary) {
+      setError('Please enter a story summary.');
+      return;
+    }
+
+    if (trimmedSummary.length < 20) {
+      setError('Summary must be at least 20 characters long.');
+      return;
+    }
+
     setLoading(true);
     setError('');
+    setSuccess(false);
 
     try {
-      const story = await storyService.generateStory(summary);
-      navigate(`/story/${story.id}/edit`);
+      const story = await storyService.generateStory(trimmedSummary);
+      setLoading(false);
+      setSuccess(true);
+      
+      // Delay redirect slightly to show success state
+      redirectTimeoutRef.current = setTimeout(() => {
+        navigate(`/story/${story.id}/edit`);
+      }, 1500);
     } catch (err) {
-      setError('Failed to generate story. Please try again.');
-      console.error(err);
-    } finally {
+      setError(getErrorMessage(err, 'Failed to generate story. Please try again.'));
       setLoading(false);
     }
   };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await performStoryGeneration();
+  };
+
+  const handleRetry = async () => {
+    await performStoryGeneration();
+  };
+
+  const remainingChars = MAX_SUMMARY_LENGTH - summary.length;
+  const isNearLimit = remainingChars < 100;
+  const isSummaryValid = summary.trim().length > 0;
 
   return (
     <div className="create-story">
@@ -35,22 +86,61 @@ function CreateStory() {
 
       <form onSubmit={handleSubmit} className="story-form">
         <div className="form-group">
-          <label htmlFor="summary">Story Summary</label>
+          <label htmlFor="summary">
+            Story Summary
+            <span className={`char-counter ${isNearLimit ? 'char-counter-warning' : ''}`}>
+              {remainingChars} characters remaining
+            </span>
+          </label>
           <textarea
             id="summary"
             value={summary}
-            onChange={(e) => setSummary(e.target.value)}
+            onChange={handleSummaryChange}
             placeholder="Enter your story idea here... (e.g., 'A young wizard discovers a magical book that transports them to different worlds.')"
             rows={8}
             required
-            disabled={loading}
+            disabled={loading || success}
+            className={error ? 'input-error' : ''}
           />
         </div>
 
-        {error && <div className="error-message">{error}</div>}
+        {error && (
+          <div className="error-message">
+            <p>{error}</p>
+            <button
+              type="button"
+              className="btn btn-secondary btn-small"
+              onClick={handleRetry}
+              disabled={loading}
+            >
+              Retry
+            </button>
+          </div>
+        )}
 
-        <button type="submit" className="btn btn-primary" disabled={loading}>
-          {loading ? 'Generating Story...' : 'Generate Story'}
+        {success && (
+          <div className="success-message">
+            <svg className="success-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            <p>Story generated successfully! Redirecting to editor...</p>
+          </div>
+        )}
+
+        {loading && (
+          <div className="loading-state">
+            <div className="spinner"></div>
+            <p className="loading-text">Generating your story with AI...</p>
+            <p className="loading-subtext">This may take a few moments</p>
+          </div>
+        )}
+
+        <button 
+          type="submit" 
+          className="btn btn-primary btn-full" 
+          disabled={loading || success || !isSummaryValid}
+        >
+          {loading ? 'Generating Story...' : success ? 'Success!' : 'Generate Story'}
         </button>
       </form>
     </div>
