@@ -11,7 +11,8 @@ import {
   updateChapter,
   regenerateChapter,
   deleteChapter,
-  publishStory
+  publishStory,
+  unpublishStory
 } from '../controllers/story.controller';
 
 const router = Router();
@@ -48,5 +49,8 @@ router.delete('/:id/chapters/:chapterId', authenticateToken, deleteChapter);
 
 // POST /api/stories/:id/publish - Publish story (requires auth)
 router.post('/:id/publish', authenticateToken, publishStory);
+
+// POST /api/stories/:id/unpublish - Unpublish story (requires auth)
+router.post('/:id/unpublish', authenticateToken, unpublishStory);
 
 export default router;
