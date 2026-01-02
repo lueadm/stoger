@@ -1,0 +1,125 @@
+name: Generate Issues from Tasks
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run mode (will not create issues)'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+jobs:
+  generate-issues:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install dependencies
+        run: npm install js-yaml
+      
+      - name: Generate issues from tasks.yml
+        uses: actions/github-script@v7
+        env:
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const yaml = require('js-yaml');
+            
+            // Read and parse tasks.yml
+            const tasksFile = fs.readFileSync('tasks.yml', 'utf8');
+            const tasksData = yaml.load(tasksFile);
+            
+            const isDryRun = process.env.DRY_RUN === 'true';
+            
+            console.log(`Project: ${tasksData.project_name}`);
+            console.log(`Description: ${tasksData.description}`);
+            console.log(`Total tasks: ${tasksData.tasks.length}`);
+            console.log(`Dry run mode: ${isDryRun}`);
+            console.log('---\n');
+            
+            // Check for existing issues to avoid duplicates
+            const existingIssues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'all',
+              per_page: 100
+            });
+            
+            const existingTitles = new Set(
+              existingIssues.data.map(issue => issue.title)
+            );
+            
+            let createdCount = 0;
+            let skippedCount = 0;
+            
+            // Create issues for each task
+            for (const task of tasksData.tasks) {
+              const issueTitle = `[Task ${task.id}] ${task.title}`;
+              
+              // Skip if issue already exists
+              if (existingTitles.has(issueTitle)) {
+                console.log(`⏭️  Skipped (already exists): ${issueTitle}`);
+                skippedCount++;
+                continue;
+              }
+              
+              const issueBody = `${task.description}
+
+**Priority:** ${task.priority}
+**Labels:** ${task.labels.join(', ')}
+**Task ID:** ${task.id}
+
+---
+*This issue was automatically generated from tasks.yml*`;
+              
+              if (isDryRun) {
+                console.log(`🔍 [DRY RUN] Would create issue: ${issueTitle}`);
+                console.log(`   Labels: ${task.labels.join(', ')}`);
+                console.log(`   Priority: ${task.priority}\n`);
+              } else {
+                try {
+                  const issue = await github.rest.issues.create({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    title: issueTitle,
+                    body: issueBody,
+                    labels: task.labels
+                  });
+                  
+                  console.log(`✅ Created issue #${issue.data.number}: ${issueTitle}`);
+                  createdCount++;
+                  
+                  // Small delay to avoid rate limiting
+                  await new Promise(resolve => setTimeout(resolve, 500));
+                } catch (error) {
+                  console.error(`❌ Failed to create issue: ${issueTitle}`);
+                  console.error(`   Error: ${error.message}`);
+                }
+              }
+            }
+            
+            console.log('\n---');
+            console.log(`📊 Summary:`);
+            if (isDryRun) {
+              console.log(`   Would create: ${tasksData.tasks.length - skippedCount} issues`);
+            } else {
+              console.log(`   Created: ${createdCount} issues`);
+            }
+            console.log(`   Skipped: ${skippedCount} issues (already exist)`);
+            console.log(`   Total tasks: ${tasksData.tasks.length}`);

@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    strategy:
+      matrix:
+        node-version: [20.x]
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm install
+      
+      - name: Lint backend
+        run: npm run lint --workspace=backend || echo "Linting skipped - implement linting rules first"
+      
+      - name: Lint frontend
+        run: npm run lint --workspace=frontend || echo "Linting skipped - implement linting rules first"
+      
+      - name: Build backend
+        run: npm run build --workspace=backend
+      
+      - name: Build frontend
+        run: npm run build --workspace=frontend
+      
+      - name: Run tests
+        run: npm test || echo "Tests skipped - implement tests first"

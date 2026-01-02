@@ -1,0 +1,24 @@
+.create-story {
+  max-width: 800px;
+  margin: 0 auto;
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.create-story h1 {
+  font-size: 32px;
+  margin-bottom: 16px;
+  color: #1f2937;
+}
+
+.instructions {
+  color: #6b7280;
+  margin-bottom: 30px;
+  line-height: 1.6;
+}
+
+.story-form {
+  width: 100%;
+}

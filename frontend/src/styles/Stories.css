@@ -1,0 +1,69 @@
+.stories {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.stories h1 {
+  font-size: 36px;
+  margin-bottom: 40px;
+  color: #1f2937;
+  text-align: center;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 80px 20px;
+}
+
+.empty-state p {
+  font-size: 18px;
+  color: #6b7280;
+  margin-bottom: 24px;
+}
+
+.stories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 30px;
+}
+
+.story-card {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: block;
+}
+
+.story-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.story-card h2 {
+  font-size: 22px;
+  margin-bottom: 12px;
+  color: #1f2937;
+}
+
+.story-card .summary {
+  color: #6b7280;
+  margin-bottom: 16px;
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.story-card .story-meta {
+  display: flex;
+  justify-content: space-between;
+  color: #9ca3af;
+  font-size: 14px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
