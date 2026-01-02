@@ -97,8 +97,6 @@ UserSchema.methods.generateAuthToken = function(): string {
   return token;
 };
 
-// Indexes for performance
-UserSchema.index({ email: 1 });
-UserSchema.index({ username: 1 });
+// Indexes for performance (email and username are already indexed via unique: true)
 
 export default mongoose.model<IUser>('User', UserSchema);
