@@ -39,14 +39,17 @@ export class AIService {
       throw new Error('AI_API_KEY is required');
     }
 
+    const timeout = config.timeout || 60000;
+    const maxRetries = config.maxRetries || 2;
+
     this.client = new OpenAI({
       apiKey: config.apiKey,
-      timeout: config.timeout || 60000,
-      maxRetries: config.maxRetries || 2
+      timeout,
+      maxRetries
     });
     
     this.model = config.model || 'gpt-4';
-    this.maxRetries = config.maxRetries || 2;
+    this.maxRetries = maxRetries;
     this.requestCount = new Map();
   }
 
