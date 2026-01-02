@@ -1,10 +1,9 @@
 import axios from 'axios';
 import { Story, GenerateStoryRequest } from '../types';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+import config from '../config';
 
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: config.apiUrl,
   headers: {
     'Content-Type': 'application/json',
   },
