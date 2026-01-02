@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { storyService } from '../services/api';
 import { getErrorMessage } from '../utils/errorHandler';
@@ -12,6 +12,16 @@ function CreateStory() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
+  const redirectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (redirectTimeoutRef.current) {
+        clearTimeout(redirectTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleSummaryChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
@@ -44,7 +54,7 @@ function CreateStory() {
       setSuccess(true);
       
       // Delay redirect slightly to show success state
-      setTimeout(() => {
+      redirectTimeoutRef.current = setTimeout(() => {
         navigate(`/story/${story.id}/edit`);
       }, 1500);
     } catch (err) {
@@ -64,6 +74,7 @@ function CreateStory() {
 
   const remainingChars = MAX_SUMMARY_LENGTH - summary.length;
   const isNearLimit = remainingChars < 100;
+  const isSummaryValid = summary.trim().length > 0;
 
   return (
     <div className="create-story">
@@ -127,7 +138,7 @@ function CreateStory() {
         <button 
           type="submit" 
           className="btn btn-primary btn-full" 
-          disabled={loading || success || !summary.trim()}
+          disabled={loading || success || !isSummaryValid}
         >
           {loading ? 'Generating Story...' : success ? 'Success!' : 'Generate Story'}
         </button>
