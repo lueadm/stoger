@@ -80,13 +80,13 @@ jobs:
               }
               
               const issueBody = `${task.description}
-
-**Priority:** ${task.priority}
-**Labels:** ${task.labels.join(', ')}
-**Task ID:** ${task.id}
-
----
-*This issue was automatically generated from tasks.yml*`;
+              
+              **Priority:** ${task.priority}
+              **Labels:** ${task.labels.join(', ')}
+              **Task ID:** ${task.id}
+              
+              ---
+              *This issue was automatically generated from tasks.yml*`;
               
               if (isDryRun) {
                 console.log(`🔍 [DRY RUN] Would create issue: ${issueTitle}`);
