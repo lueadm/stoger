@@ -25,17 +25,11 @@ export const disconnectDatabase = async (): Promise<void> => {
   }
 };
 
-// Handle connection events
-mongoose.connection.on('error', (err) => {
+// Handle connection events (using .once to avoid duplicate listeners)
+mongoose.connection.once('error', (err) => {
   console.error('Mongoose connection error:', err);
 });
 
-mongoose.connection.on('disconnected', () => {
+mongoose.connection.once('disconnected', () => {
   console.log('Mongoose disconnected from MongoDB');
-});
-
-// Graceful shutdown
-process.on('SIGINT', async () => {
-  await disconnectDatabase();
-  process.exit(0);
 });
