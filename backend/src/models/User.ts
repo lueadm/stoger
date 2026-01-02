@@ -65,9 +65,14 @@ UserSchema.methods.comparePassword = async function(candidatePassword: string): 
 
 // Method to generate JWT token
 UserSchema.methods.generateAuthToken = function(): string {
-  const secret = process.env.JWT_SECRET || 'default-secret-key';
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('JWT_SECRET environment variable is not set');
+  }
+  
   const expiresIn = process.env.JWT_EXPIRES_IN || '7d';
   
+  // Type cast needed due to jsonwebtoken type definitions issue
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const token = (jwt.sign as any)(
     { userId: this._id.toString(), email: this.email },

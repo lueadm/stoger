@@ -27,6 +27,11 @@ app.get('/health', (req: Request, res: Response) => {
 // Start server and connect to database
 const startServer = async () => {
   try {
+    // Validate required environment variables
+    if (!process.env.JWT_SECRET) {
+      throw new Error('JWT_SECRET environment variable is required');
+    }
+    
     // Connect to database
     await connectDatabase();
     

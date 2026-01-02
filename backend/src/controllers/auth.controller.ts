@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { ZodError } from 'zod';
 import User from '../models/User';
 import { registerSchema, loginSchema } from '../validators/auth.validator';
 import { AuthRequest } from '../middleware/auth.middleware';
@@ -45,7 +46,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       token
     });
   } catch (error) {
-    if (error instanceof Error && error.name === 'ZodError') {
+    if (error instanceof ZodError) {
       res.status(400).json({ error: 'Validation failed', details: error });
       return;
     }
@@ -89,7 +90,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       token
     });
   } catch (error) {
-    if (error instanceof Error && error.name === 'ZodError') {
+    if (error instanceof ZodError) {
       res.status(400).json({ error: 'Validation failed', details: error });
       return;
     }
