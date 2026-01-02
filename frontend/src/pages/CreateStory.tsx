@@ -21,9 +21,7 @@ function CreateStory() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const performStoryGeneration = async () => {
     if (!summary.trim()) {
       setError('Please enter a story summary.');
       return;
@@ -52,33 +50,13 @@ function CreateStory() {
     }
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await performStoryGeneration();
+  };
+
   const handleRetry = async () => {
-    if (!summary.trim()) {
-      setError('Please enter a story summary.');
-      return;
-    }
-
-    if (summary.length < 20) {
-      setError('Summary must be at least 20 characters long.');
-      return;
-    }
-
-    setLoading(true);
-    setError('');
-    setSuccess(false);
-
-    try {
-      const story = await storyService.generateStory(summary);
-      setSuccess(true);
-      
-      // Delay redirect slightly to show success state
-      setTimeout(() => {
-        navigate(`/story/${story.id}/edit`);
-      }, 1500);
-    } catch (err) {
-      setError(getErrorMessage(err, 'Failed to generate story. Please try again.'));
-      setLoading(false);
-    }
+    await performStoryGeneration();
   };
 
   const remainingChars = MAX_SUMMARY_LENGTH - summary.length;
