@@ -187,9 +187,14 @@ export const updateStory = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    // Prevent editing published stories (except for the published field itself)
-    if (story.published && validatedData.published !== false) {
-      if (validatedData.title !== undefined || validatedData.summary !== undefined) {
+    // Prevent editing published stories
+    // Authors can only change the published field to unpublish
+    // All other edits require the story to be unpublished first
+    if (story.published) {
+      const isUnpublishing = validatedData.published === false;
+      const isEditingContent = validatedData.title !== undefined || validatedData.summary !== undefined;
+      
+      if (isEditingContent && !isUnpublishing) {
         res.status(403).json({ error: 'Cannot edit published stories. Unpublish the story first.' });
         return;
       }
