@@ -2,6 +2,7 @@ import { useState, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { authService } from '../services/authService';
+import { getErrorMessage } from '../utils/errorHandler';
 import '../styles/Auth.css';
 
 function Login() {
@@ -48,12 +49,7 @@ function Login() {
       setAuth(response.user, response.token);
       navigate('/');
     } catch (err: unknown) {
-      if (err && typeof err === 'object' && 'response' in err) {
-        const axiosError = err as { response?: { data?: { error?: string } } };
-        setError(axiosError.response?.data?.error || 'Login failed. Please try again.');
-      } else {
-        setError('Login failed. Please try again.');
-      }
+      setError(getErrorMessage(err, 'Login failed. Please try again.'));
     } finally {
       setLoading(false);
     }
